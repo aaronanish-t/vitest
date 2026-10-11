@@ -73,6 +73,24 @@ describe('random sequencer', () => {
     const sequencer = new RandomSequencer(ctx)
     const files = workspaced(['b', 'a', 'c'])
     const sorted = await sequencer.sort(files)
-    expect(sorted).toStrictEqual(workspaced(['a', 'c', 'b']))
+    expect(sorted).toStrictEqual(workspaced(['b', 'c', 'a']))
+  })
+
+  test('sorting does not depend on the input order when seed is defined', async () => {
+    const ctx = buildCtx()
+    ctx.config.sequence.seed = 101
+    const sequencer = new RandomSequencer(ctx)
+    const orders = [
+      ['a', 'b', 'c', 'd', 'e'],
+      ['e', 'd', 'c', 'b', 'a'],
+      ['c', 'a', 'e', 'b', 'd'],
+    ]
+    const results = await Promise.all(
+      orders.map(async (order) =>
+        (await sequencer.sort(workspaced(order))).map((spec) => spec.moduleId),
+      ),
+    )
+    expect(results[1]).toStrictEqual(results[0])
+    expect(results[2]).toStrictEqual(results[0])
   })
 })
